@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AK-47</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #1a0000, #2d0000, #1a1a1a);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #eee;
+      padding: 20px;
+    }
+    .player {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 28px 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,50,50,0.15);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ff3333;
+      text-shadow: 0 0 15px rgba(255,50,50,0.4);
+    }
+    .header p {
+      margin-top: 6px;
+      opacity: 0.7;
+      font-size: 0.9rem;
+    }
+    .lyrics {
+      height: 400px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .lyrics::-webkit-scrollbar { width: 5px; }
+    .lyrics::-webkit-scrollbar-thumb {
+      background: rgba(255,80,80,0.3);
+      border-radius: 10px;
+    }
+    .line {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.5s ease;
+      margin: 11px 0;
+      font-size: 1.08rem;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .line.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .line.destaque {
+      color: #ff5555;
+      font-weight: 600;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    button {
+      background: rgba(255,255,255,0.08);
+      border: none;
+      color: white;
+      padding: 11px 24px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    button:hover { background: rgba(255,255,255,0.15); }
+    button.primary {
+      background: linear-gradient(to right, #ff2222, #cc0000);
+      color: white;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <div class="header">
+      <h1>AK-47</h1>
+      <p>Letra</p>
+    </div>
+
+    <div class="lyrics" id="lyrics"></div>
+
+    <div class="controls">
+      <button class="primary" onclick="iniciar()">▶ Tocar Letra</button>
+      <button onclick="reiniciar()">Reiniciar</button>
+    </div>
+  </div>
+
+  <script>
+    const letra = [
+      { texto: "AK 47 é o porte do homem", tipo: "destaque" },
+      { texto: "Perfil brasileiro, arma israelense", tipo: "normal" },
+      { texto: "Antes de vir pra base tu fica de canto", tipo: "normal" },
+      { texto: "Marca dois minuto, olha, tu para e pense", tipo: "normal" },
+      { texto: "", tipo: "normal" },
+      { texto: "Que se tu brotar no mandela é só socadão", tipo: "normal" },
+      { texto: "O Torugo é chato, brabo na favela", tipo: "normal" },
+      { texto: "As piranha trepa, mas a Glock não", tipo: "normal" },
+      { texto: "Na pista o bonde é foda, eles não amarela", tipo: "normal" },
+      { texto: "", tipo: "normal" },
+      { texto: "Bota cara no beco pra perder estresse", tipo: "destaque" },
+      { texto: "Que as piranha desce, as piranha desce", tipo: "destaque" },
+      { texto: "Os amigo vendendo, a firma enriquece", tipo: "normal" },
+      { texto: "As piranha desce, as piranha desce", tipo: "destaque" },
+      { texto: "", tipo: "normal" },
+      { texto: "Bota cara no beco pra perder estresse", tipo: "destaque" },
+      { texto: "Que as piranha desce, as piranha desce", tipo: "destaque" },
+      { texto: "Os amigo vendendo, a firma enriquece", tipo: "normal" },
+      { texto: "As piranha desce, as piranha desce", tipo: "destaque" },
+      { texto: "", tipo: "normal" },
+      { texto: "Já que em Minas não tem praia", tipo: "normal" },
+      { texto: "Faz marquinha e vai pro sítio", tipo: "normal" },
+      { texto: "Quica pra bandido, vai", tipo: "destaque" },
+      { texto: "Senta pra bandido", tipo: "destaque" },
+      { texto: "", tipo: "normal" },
+      { texto: "Já que em Minas não tem praia", tipo: "normal" },
+      { texto: "Faz marquinha e vai pro sítio", tipo: "normal" },
+      { texto: "Quica pra bandido, vai", tipo: "destaque" },
+      { texto: "Senta pra bandido", tipo: "destaque" },
+      { texto: "", tipo: "normal" },
+      { texto: "Arrasta, arrasta a xereca no bico", tipo: "destaque" },
+      { texto: "Arrasta, arrasta, arrasta a xereca no bico", tipo: "destaque" },
+      { texto: "", tipo: "normal" },
+      { texto: "Não tem problema, ela não vai ficar careta", tipo: "normal" },
+      { texto: "Leva ela no baile de favela pra ela vim jogar a buceta", tipo: "normal" },
+      { texto: "", tipo: "normal" },
+      { texto: "No papagaio, perereca ela deixa", tipo: "normal" },
+      { texto: "E so serrão, perereca ela deixa", tipo: "normal" },
+      { texto: "No cabanão, perereca ela deixa", tipo: "normal" },
+      { texto: "Deixa, deixa, deixa", tipo: "destaque" },
+      { texto: "", tipo: "normal" },
+      { texto: "Juliana safadinha, putiane da favela", tipo: "normal" },
+      { texto: "Vem de perna aberta, vem de perna aberta", tipo: "destaque" },
+      { texto: "Vou te botar tudinho, vou socar na tua xereca", tipo: "normal" },
+      { texto: "Vem de perna aberta, vem de perna aberta", tipo: "destaque" },
+      { texto: "", tipo: "normal" },
+      { texto: "Toma, toma, toma, toma, toma, toma na pepeka", tipo: "destaque" },
+      { texto: "Vem de perna aberta, vem de perna aberta", tipo: "destaque" }
+    ];
+
+    const container = document.getElementById("lyrics");
+    let timeoutIds = [];
+
+    function criarLinhas() {
+      container.innerHTML = "";
+      letra.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = `line ${item.tipo}`;
+        div.id = `line-${index}`;
+        div.textContent = item.texto || "\u00A0";
+        container.appendChild(div);
+      });
+    }
+
+    function iniciar() {
+      reiniciar();
+      criarLinhas();
+
+      letra.forEach((_, index) => {
+        const id = setTimeout(() => {
+          const el = document.getElementById(`line-${index}`);
+          if (el) {
+            el.classList.add("visible");
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, index * 1450);
+        timeoutIds.push(id);
+      });
+    }
+
+    function reiniciar() {
+      timeoutIds.forEach(clearTimeout);
+      timeoutIds = [];
+      criarLinhas();
+      container.scrollTop = 0;
+    }
+
+    criarLinhas();
+  </script>
+</body>
+</html>

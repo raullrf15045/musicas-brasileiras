@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Até Que Durou - Péricles</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #eee;
+    }
+    .player {
+      width: 92%;
+      max-width: 520px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(14px);
+      border-radius: 24px;
+      padding: 28px 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .header h1 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #ff6b6b, #feca57);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header p { margin-top: 5px; opacity: 0.7; font-size: 0.95rem; }
+
+    .lyrics {
+      height: 360px;
+      overflow-y: auto;
+      padding: 10px 8px;
+      margin-bottom: 18px;
+      scroll-behavior: smooth;
+    }
+    .lyrics::-webkit-scrollbar { width: 5px; }
+    .lyrics::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+    .line {
+      opacity: 0.3;
+      transform: scale(0.96);
+      transition: all 0.45s ease;
+      margin: 14px 0;
+      font-size: 1.18rem;
+      text-align: center;
+      line-height: 1.45;
+      padding: 4px 0;
+    }
+    .line.active {
+      opacity: 1;
+      transform: scale(1.03);
+      color: #feca57;
+      font-weight: 600;
+      text-shadow: 0 0 18px rgba(254, 202, 87, 0.45);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      padding: 11px 22px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    button:hover { background: rgba(255,255,255,0.22); }
+    button.primary {
+      background: linear-gradient(to right, #ff6b6b, #feca57);
+      color: #1a1a2e;
+      font-weight: 600;
+    }
+    audio { width: 100%; border-radius: 12px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <div class="header">
+      <h1>ATÉ QUE DUROU</h1>
+      <p>Péricles</p>
+    </div>
+
+    <div class="lyrics" id="lyrics"></div>
+
+    <div class="controls">
+      <button class="primary" onclick="tocar()">▶ Tocar</button>
+      <button onclick="pausar()">Pausar</button>
+      <button onclick="reiniciar()">Reiniciar</button>
+    </div>
+
+    <audio id="audio" src="musica.mp3" controls></audio>
+  </div>
+
+  <script>
+    // Tempos aproximados baseados na música (em segundos)
+    const letra = [
+      { tempo: 17, texto: "Tentei fazer valer a pena" },
+      { tempo: 20, texto: "Passei por cima dos problemas" },
+      { tempo: 25, texto: "Achei que eu era o bastante" },
+      { tempo: 28, texto: "Mas não fui pra você" },
+
+      { tempo: 31, texto: "Tentei ser um cara perfeito" },
+      { tempo: 35, texto: "Eu fiz as coisas do seu jeito" },
+      { tempo: 40, texto: "Queria ser mais importante" },
+      { tempo: 43, texto: "Mas não fui pra você" },
+
+      { tempo: 46, texto: "Até que durou..." },
+      { tempo: 49, texto: "Me diz o porquê" },
+      { tempo: 52, texto: "Perdeu tanto tempo aqui" },
+      { tempo: 55, texto: "Te faço um favor" },
+      { tempo: 57, texto: "Melhor eu sumir" },
+
+      { tempo: 59, texto: "Fui mais um nas suas mãos" },
+      { tempo: 63, texto: "Não sei se por carência ou falta de opção" },
+      { tempo: 68, texto: "Só sei que eu senti amor" },
+      { tempo: 71, texto: "Que pena, só eu senti amor" },
+
+      { tempo: 74, texto: "O que faço com os planos" },
+      { tempo: 77, texto: "Dos próximos anos?" },
+      { tempo: 80, texto: "Juro que não sei" },
+      { tempo: 83, texto: "Só sei que eu senti amor" },
+      { tempo: 86, texto: "Que pena, só eu senti amor" },
+
+      { tempo: 91, texto: "Só eu senti amor..." },
+
+      { tempo: 95, texto: "Tentei ser um cara perfeito" },
+      { tempo: 99, texto: "Eu fiz as coisas do seu jeito" },
+      { tempo: 103, texto: "Queria ser mais importante" },
+      { tempo: 106, texto: "Mas não fui pra você" },
+
+      { tempo: 109, texto: "Até que durou..." },
+      { tempo: 112, texto: "Me diz o porquê" },
+      { tempo: 116, texto: "Te faço um favor" },
+      { tempo: 118, texto: "Melhor eu sumir" },
+
+      { tempo: 129, texto: "Fui mais um nas suas mãos" },
+      { tempo: 133, texto: "Não sei se por carência ou falta de opção" },
+      { tempo: 138, texto: "Só sei que eu senti amor" },
+      { tempo: 141, texto: "Que pena, só eu senti amor" },
+
+      { tempo: 145, texto: "O que faço com os planos" },
+      { tempo: 148, texto: "Dos próximos anos?" },
+      { tempo: 151, texto: "Juro que não sei" },
+      { tempo: 154, texto: "Só sei que eu senti amor" },
+      { tempo: 157, texto: "Que pena, só eu senti amor" },
+
+      { tempo: 190, texto: "Fui mais um nas suas mãos" },
+      { tempo: 194, texto: "Não sei se por carência ou falta de opção" },
+      { tempo: 199, texto: "Só sei que eu senti amor" },
+      { tempo: 202, texto: "Que pena, só eu senti amor" },
+
+      { tempo: 206, texto: "O que faço com os planos" },
+      { tempo: 209, texto: "Dos próximos anos?" },
+      { tempo: 212, texto: "Juro que não sei" },
+      { tempo: 215, texto: "Só sei que eu senti amor" },
+      { tempo: 218, texto: "Que pena, só eu senti amor" },
+
+      { tempo: 250, texto: "Só eu senti amor..." }
+    ];
+
+    const container = document.getElementById("lyrics");
+    const audio = document.getElementById("audio");
+    let currentIndex = -1;
+
+    // Cria as linhas
+    letra.forEach((item, i) => {
+      const div = document.createElement("div");
+      div.className = "line";
+      div.id = "line-" + i;
+      div.textContent = item.texto;
+      container.appendChild(div);
+    });
+
+    function atualizarLetra() {
+      const tempoAtual = audio.currentTime;
+      let novoIndex = -1;
+
+      for (let i = 0; i < letra.length; i++) {
+        if (tempoAtual >= letra[i].tempo) {
+          novoIndex = i;
+        } else {
+          break;
+        }
+      }
+
+      if (novoIndex !== currentIndex && novoIndex >= 0) {
+        currentIndex = novoIndex;
+        document.querySelectorAll(".line").forEach(el => el.classList.remove("active"));
+        const linha = document.getElementById("line-" + currentIndex);
+        if (linha) {
+          linha.classList.add("active");
+          linha.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    }
+
+    audio.addEventListener("timeupdate", atualizarLetra);
+
+    function tocar() {
+      audio.play();
+    }
+
+    function pausar() {
+      audio.pause();
+    }
+
+    function reiniciar() {
+      audio.pause();
+      audio.currentTime = 0;
+      currentIndex = -1;
+      document.querySelectorAll(".line").forEach(el => el.classList.remove("active"));
+      container.scrollTop = 0;
+    }
+  </script>
+</body>
+</html>

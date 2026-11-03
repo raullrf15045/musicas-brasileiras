@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player de Músicas</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #0f0c29, #1a1a2e, #16213e);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #eee;
+      padding: 20px;
+    }
+    .player {
+      width: 100%;
+      max-width: 540px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(14px);
+      border-radius: 24px;
+      padding: 26px 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #ff6b6b, #feca57);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header p {
+      margin-top: 5px;
+      opacity: 0.75;
+      font-size: 0.9rem;
+    }
+    .seletor {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .seletor button {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px 6px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    .seletor button.ativo {
+      background: linear-gradient(to right, #ff6b6b, #feca57);
+      color: #1a1a2e;
+      font-weight: 600;
+    }
+    .lyrics {
+      height: 340px;
+      overflow-y: auto;
+      padding: 8px;
+      margin-bottom: 14px;
+    }
+    .lyrics::-webkit-scrollbar { width: 5px; }
+    .lyrics::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+    }
+    .line {
+      opacity: 0.3;
+      transform: scale(0.96);
+      transition: all 0.4s ease;
+      margin: 11px 0;
+      font-size: 1.1rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .line.active {
+      opacity: 1;
+      transform: scale(1.04);
+      color: #feca57;
+      font-weight: 600;
+      text-shadow: 0 0 14px rgba(254, 202, 87, 0.4);
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    button.ctrl {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    button.ctrl:hover { background: rgba(255,255,255,0.2); }
+    button.primary {
+      background: linear-gradient(to right, #ff6b6b, #feca57);
+      color: #1a1a2e;
+      font-weight: 600;
+    }
+    audio {
+      width: 100%;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <div class="header">
+      <h1 id="titulo">Escolha a música</h1>
+      <p id="artista">-</p>
+    </div>
+
+    <div class="seletor">
+      <button id="btn1" onclick="escolherMusica(1)">Até Que Durou</button>
+      <button id="btn2" onclick="escolherMusica(2)">Já Que Me Ensinou</button>
+      <button id="btn3" onclick="escolherMusica(3)">AK-47</button>
+      <button id="btn4" onclick="escolherMusica(4)">Malandramente</button>
+      <button id="btn5" onclick="escolherMusica(5)">Ela Pensa em Mim</button>
+      <button id="btn6" onclick="escolherMusica(6)">Ai Wilson Vai</button>
+    </div>
+
+    <div class="lyrics" id="lyrics"></div>
+
+    <div class="controls">
+      <button class="ctrl primary" onclick="tocar()">▶ Tocar</button>
+      <button class="ctrl" onclick="pausar()">Pausar</button>
+      <button class="ctrl" onclick="reiniciar()">Reiniciar</button>
+    </div>
+
+    <audio id="audio" controls></audio>
+  </div>
+
+  <script>
+    const musicas = {
+      1: {
+        titulo: "ATÉ QUE DUROU",
+        artista: "Péricles",
+        arquivo: "pericles.mp3",
+        letra: [
+          { tempo: 17, texto: "Tentei fazer valer a pena" },
+          { tempo: 20, texto: "Passei por cima dos problemas" },
+          { tempo: 25, texto: "Achei que eu era o bastante" },
+          { tempo: 28, texto: "Mas não fui pra você" },
+          { tempo: 31, texto: "Tentei ser um cara perfeito" },
+          { tempo: 35, texto: "Eu fiz as coisas do seu jeito" },
+          { tempo: 40, texto: "Queria ser mais importante" },
+          { tempo: 43, texto: "Mas não fui pra você" },
+          { tempo: 46, texto: "Até que durou..." },
+          { tempo: 49, texto: "Me diz o porquê" },
+          { tempo: 52, texto: "Perdeu tanto tempo aqui" },
+          { tempo: 55, texto: "Te faço um favor" },
+          { tempo: 57, texto: "Melhor eu sumir" },
+          { tempo: 59, texto: "Fui mais um nas suas mãos" },
+          { tempo: 63, texto: "Não sei se por carência ou falta de opção" },
+          { tempo: 68, texto: "Só sei que eu senti amor" },
+          { tempo: 71, texto: "Que pena, só eu senti amor" }
+        ]
+      },
+      2: {
+        titulo: "JÁ QUE ME ENSINOU A BEBER",
+        artista: "Priscila Senna",
+        arquivo: "priscila.mp3",
+        letra: [
+          { tempo: 18, texto: "Eu prometi não mais te procurar" },
+          { tempo: 21, texto: "Mas hoje não é meu dia de sorte" },
+          { tempo: 25, texto: "Achei sua foto no meu celular" },
+          { tempo: 28, texto: "Não te esqueci, me diz como é que pode?" },
+          { tempo: 31, texto: "Cê me tirou do coração" },
+          { tempo: 33, texto: "E eu não te tirei da mente" },
+          { tempo: 35, texto: "O álcool não apaga" },
+          { tempo: 38, texto: "A saudade da gente, amor, amor" },
+          { tempo: 44, texto: "Já que me ensinou a beber" },
+          { tempo: 47, texto: "Já que me ensinou a sofrer" },
+          { tempo: 50, texto: "Me ensina, por favor" },
+          { tempo: 53, texto: "Como é que faz pra te esquecer" }
+        ]
+      },
+      3: {
+        titulo: "AK-47",
+        artista: "RT / MK",
+        arquivo: "ak47.mp3",
+        letra: [
+          { tempo: 2, texto: "Mais um AD, né?" },
+          { tempo: 5, texto: "O RT num beat, MK na voz" },
+          { tempo: 14, texto: "Já sofri muito bully no tempo da escola" },
+          { tempo: 18, texto: "Agora tudo mudou, eu passo recolhendo a nota" },
+          { tempo: 21, texto: "Maloqueiro chique, é disso que ela gosta" },
+          { tempo: 24, texto: "É camarada, eu ando com o pente pra fora" },
+          { tempo: 61, texto: "As piranha trepa, trepa, trepa, trepa" },
+          { tempo: 76, texto: "AK 47 é o porte do homem" }
+        ]
+      },
+      4: {
+        titulo: "MALANDRAMENTE",
+        artista: "Dennis feat. MC Nandinho & Nego Bam",
+        arquivo: "malandramente.mp3",
+        letra: [
+          { tempo: 5, texto: "Malandramente" },
+          { tempo: 8, texto: "A menina inocente" },
+          { tempo: 11, texto: "Se envolveu com a gente" },
+          { tempo: 14, texto: "Só pra poder curtir" },
+          { tempo: 17, texto: "Malandramente" },
+          { tempo: 20, texto: "Fez cara de carente" },
+          { tempo: 23, texto: "Envolvida com a tropa" },
+          { tempo: 26, texto: "Começou a seduzir" },
+          { tempo: 29, texto: "Malandramente" },
+          { tempo: 32, texto: "Meteu o pé pra casa" },
+          { tempo: 35, texto: "Diz que a mãe tá ligando" },
+          { tempo: 38, texto: "Nóis se vê por aí" },
+          { tempo: 42, texto: "Ai, safada" },
+          { tempo: 45, texto: "Na hora de ganhar madeirada" },
+          { tempo: 49, texto: "A menina meteu o pé pra casa" },
+          { tempo: 53, texto: "E mandou um recadinho pra mim" },
+          { tempo: 57, texto: "Nóis se vê por aí" },
+          { tempo: 60, texto: "Nóis se vê por aí" },
+          { tempo: 63, texto: "Nóis se vê por aí" },
+          { tempo: 66, texto: "Nóis se vê por aí" },
+          { tempo: 70, texto: "Ai, safada" },
+          { tempo: 73, texto: "Na hora de ganhar madeirada" },
+          { tempo: 77, texto: "A menina meteu o pé pra casa" },
+          { tempo: 81, texto: "E mandou um recadinho pra mim" },
+          { tempo: 85, texto: "Nóis se vê por aí" },
+          { tempo: 88, texto: "Nóis se vê por aí" },
+          { tempo: 91, texto: "Nóis se vê por aí" }
+        ]
+      },
+      5: {
+        titulo: "ELA PENSA EM MIM NO TRABALHO",
+        artista: "MC Durrony",
+        arquivo: "queroveresquecer.mp3",
+        letra: [
+          { tempo: 2, texto: "Ó" },
+          { tempo: 5, texto: "Ela pensa em mim no trabalho" },
+          { tempo: 9, texto: "Ela sonha comigo dormindo" },
+          { tempo: 13, texto: "Ela tenta tirar, mas não saio" },
+          { tempo: 17, texto: "Viciou no leitin' masculino" },
+          { tempo: 22, texto: "Eu tô na boca e na mente dela" },
+          { tempo: 26, texto: "Quero ver esquecer o pretão" },
+          { tempo: 30, texto: "Tapa no rosto, soquin' na costela" },
+          { tempo: 34, texto: "Safado, gostoso do sexo bom" },
+          { tempo: 38, texto: "Eu tô na boca e na mente dela" },
+          { tempo: 42, texto: "Quero ver esquecer o pretão" },
+          { tempo: 46, texto: "Tapa no rosto, soquin' na costela" },
+          { tempo: 50, texto: "Safado, gostoso do sexo bom" },
+          { tempo: 55, texto: "Ela pensa em mim no trabalho" },
+          { tempo: 59, texto: "Ela sonha comigo dormindo" },
+          { tempo: 63, texto: "Ela tenta tirar, mas não saio" },
+          { tempo: 67, texto: "Viciou no leitin' masculino" },
+          { tempo: 72, texto: "Ela pensa em mim no trabalho" },
+          { tempo: 76, texto: "Ela sonha comigo dormindo" },
+          { tempo: 80, texto: "Ela tenta tirar, mas não saio" },
+          { tempo: 84, texto: "Viciou no leitin' masculino" },
+          { tempo: 89, texto: "Eu tô na boca e na mente dela" },
+          { tempo: 93, texto: "Quero ver esquecer o pretão" }
+        ]
+      },
+      6: {
+        titulo: "AI WILSON VAI",
+        artista: "MC Grizante",
+        arquivo: "eunaonasci.mp3",
+        letra: [
+          { tempo: 3, texto: "Eu não nasci gay" },
+          { tempo: 6, texto: "A culpa é do meu pai" },
+          { tempo: 10, texto: "Que contratou um tal de Wilson" },
+          { tempo: 14, texto: "Pra ser capataz" },
+          { tempo: 18, texto: "Eu vi o bofe tomar banho" },
+          { tempo: 22, texto: "E o tamanho da sua mala" },
+          { tempo: 26, texto: "Era demais" },
+          { tempo: 29, texto: "Além de linda, era demais" },
+          { tempo: 34, texto: "Eu virei gay" },
+          { tempo: 37, texto: "E me assumi" },
+          { tempo: 40, texto: "A arte da pederastia" },
+          { tempo: 44, texto: "E pude um dia, então sorrir" },
+          { tempo: 48, texto: "Pedi o Wilson em casamento" },
+          { tempo: 52, texto: "E o jumento aceitou" },
+          { tempo: 56, texto: "A Lua de mel foi no Egito" },
+          { tempo: 60, texto: "Eu fui pra cama e dei um grito" },
+          { tempo: 64, texto: "E disse: Hey" },
+          { tempo: 68, texto: "Vai devagar, amor" },
+          { tempo: 71, texto: "Não vai com força, ainda sou moça" },
+          { tempo: 75, texto: "E não quero sentir dor" },
+          { tempo: 79, texto: "Me trate como uma menina" },
+          { tempo: 83, texto: "Vaselina, por favor" },
+          { tempo: 87, texto: "Parecia Rambo" },
+          { tempo: 90, texto: "Com a sua bazuca na minha nuca" },
+          { tempo: 94, texto: "E disse: Vai" },
+          { tempo: 98, texto: "Ai, Wilson, vai" },
+          { tempo: 101, texto: "Esfrega a mala na minha cara" },
+          { tempo: 105, texto: "Vai pra frente e vai pra trás" },
+          { tempo: 109, texto: "Pra malona eu dei um grito" },
+          { tempo: 113, texto: "Entalei, quase eu vomito" },
+          { tempo: 117, texto: "Ai, Wilson, vai" },
+          { tempo: 120, texto: "Ai, Wilson, vai" },
+          { tempo: 123, texto: "Hey, hey" },
+          { tempo: 127, texto: "Ai, Wilson, vai" },
+          { tempo: 130, texto: "Ai, Wilson, vai" },
+          { tempo: 133, texto: "Hey, hey" },
+          { tempo: 138, texto: "Eu não nasci gay" },
+          { tempo: 141, texto: "A culpa é do meu pai" },
+          { tempo: 145, texto: "Que contratou um tal de Wilson" },
+          { tempo: 149, texto: "Pra ser o capataz" },
+          { tempo: 153, texto: "Eu vi o bofe tomar banho" },
+          { tempo: 157, texto: "E o tamanho da sua mala" },
+          { tempo: 161, texto: "Era demais" },
+          { tempo: 164, texto: "Além de linda, era demais" },
+          { tempo: 169, texto: "Eu virei gay" },
+          { tempo: 172, texto: "Me assumi" },
+          { tempo: 175, texto: "A arte da pederastia" },
+          { tempo: 179, texto: "E pude um dia, então sorrir" },
+          { tempo: 183, texto: "Pedi o Wilson em casamento" },
+          { tempo: 187, texto: "E o jumento aceitou" },
+          { tempo: 191, texto: "A Lua de mel foi no Egito" },
+          { tempo: 195, texto: "Eu fui pra cama e dei um grito" },
+          { tempo: 199, texto: "E disse: Hey" },
+          { tempo: 203, texto: "Vai devagar, amor" },
+          { tempo: 206, texto: "Não vai com força, ainda sou moça" },
+          { tempo: 210, texto: "E não quero sentir dor" },
+          { tempo: 214, texto: "Me trate como uma menina" },
+          { tempo: 218, texto: "Vaselina, por favor" },
+          { tempo: 222, texto: "Parecia Rambo" },
+          { tempo: 225, texto: "Com a sua bazuca na minha nuca" },
+          { tempo: 229, texto: "E disse: Vai" },
+          { tempo: 233, texto: "Ai, Wilson, vai" },
+          { tempo: 236, texto: "Esfrega a mala na minha cara" },
+          { tempo: 240, texto: "Vai pra frente e vai pra trás" },
+          { tempo: 244, texto: "Pra malona eu dei um grito" },
+          { tempo: 248, texto: "Entalei, quase eu vomito" },
+          { tempo: 252, texto: "Ai, Wilson, vai" },
+          { tempo: 255, texto: "Ai, Wilson, vai" },
+          { tempo: 258, texto: "Hey, hou" }
+        ]
+      }
+    };
+
+    let musicaAtual = null;
+    let currentIndex = -1;
+    const audio = document.getElementById("audio");
+    const container = document.getElementById("lyrics");
+
+    function escolherMusica(num) {
+      audio.pause();
+      audio.currentTime = 0;
+      currentIndex = -1;
+      document.querySelectorAll(".seletor button").forEach(btn => btn.classList.remove("ativo"));
+      document.getElementById("btn" + num).classList.add("ativo");
+      musicaAtual = musicas[num];
+      document.getElementById("titulo").textContent = musicaAtual.titulo;
+      document.getElementById("artista").textContent = musicaAtual.artista;
+      audio.src = musicaAtual.arquivo;
+      container.innerHTML = "";
+      musicaAtual.letra.forEach((item, i) => {
+        const div = document.createElement("div");
+        div.className = "line";
+        div.id = "line-" + i;
+        div.textContent = item.texto;
+        container.appendChild(div);
+      });
+    }
+
+    function atualizarLetra() {
+      if (!musicaAtual) return;
+      const tempoAtual = audio.currentTime;
+      let novoIndex = -1;
+      for (let i = 0; i < musicaAtual.letra.length; i++) {
+        if (tempoAtual >= musicaAtual.letra[i].tempo) {
+          novoIndex = i;
+        } else break;
+      }
+      if (novoIndex !== currentIndex && novoIndex >= 0) {
+        currentIndex = novoIndex;
+        document.querySelectorAll(".line").forEach(el => el.classList.remove("active"));
+        const linha = document.getElementById("line-" + currentIndex);
+        if (linha) {
+          linha.classList.add("active");
+          linha.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+    }
+
+    audio.addEventListener("timeupdate", atualizarLetra);
+
+    function tocar() {
+      if (!musicaAtual) {
+        alert("Escolhe uma música primeiro!");
+        return;
+      }
+      audio.play();
+    }
+
+    function pausar() {
+      audio.pause();
+    }
+
+    function reiniciar() {
+      audio.pause();
+      audio.currentTime = 0;
+      currentIndex = -1;
+      document.querySelectorAll(".line").forEach(el => el.classList.remove("active"));
+      container.scrollTop = 0;
+    }
+  </script>
+</body>
+</html>
